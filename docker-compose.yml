@@ -1,0 +1,12 @@
+version: '3'
+services:
+
+  app:
+    build: .
+    ports:
+      - 8000:4000
+    volumes:
+      - ./src:/webapp
+    command: gunicorn -b 0.0.0.0:4000 webapp.app:app --chdir / --reload
+    environment:
+      - PYTHONUNBUFFERED=1
