@@ -1,4 +1,4 @@
-from flask import Blueprint, request, send_file
+from flask import Blueprint, request
 from PIL import Image
 
 from .predict.existence import get_card_existence
@@ -10,29 +10,14 @@ webapp = Blueprint("webapp", __name__)
 @webapp.route("/get_the_same_img", methods=["POST"])
 def get_the_same_img():
     img = http.get_image_from_request(request)
-
-    print(f"Received img.size: {img.size}, mode: {img.mode}")
-
-    out_img = img
-
-    return send_file(
-        http.prepare_file_to_output(out_img),
-        attachment_filename="mask.jpg",
-        mimetype="image/jpg",
-    )
+    return http.to_response(img)
 
 
 @webapp.route("/get_square_img", methods=["POST"])
 def get_square_img():
     img = http.get_image_from_request(request)
-
-    out_img = image.get_square_image(img)
-
-    return send_file(
-        http.prepare_file_to_output(out_img),
-        attachment_filename="mask.jpg",
-        mimetype="image/jpg",
-    )
+    square_image = image.get_square_image(img)
+    return http.to_response(square_image)
 
 
 @webapp.route("/card_exists", methods=["POST"])

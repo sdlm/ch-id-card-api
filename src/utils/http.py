@@ -1,5 +1,6 @@
 import io
 
+from flask import send_file
 from PIL import Image
 
 from .. import settings
@@ -13,12 +14,6 @@ def get_file_from_request(request, rise_exc: bool = True):
         return None
 
     file = request.files["file"]
-    print("- " * 10)
-    print("file.filename: %s" % file.filename)
-    print("file.content_length: %s" % file.content_length)
-    print("file.mimetype: %s" % file.mimetype)
-    print("file.mimetype_params: %s" % file.mimetype_params)
-    print("- " * 10)
     if not file or file.filename == "":
         if rise_exc:
             raise InvalidUsage("You must send file")
@@ -27,6 +22,11 @@ def get_file_from_request(request, rise_exc: bool = True):
     if not allowed_file(file.filename):
         if rise_exc:
             raise InvalidUsage("Only .jpg allowed")
+        return None
+
+    if file.mimetype not in settings.ALLOWED_MIMETYPES:
+        if rise_exc:
+            raise InvalidUsage("Only JPEG images allowed")
         return None
 
     # if file.content_length == 0:
@@ -40,20 +40,19 @@ def get_file_from_request(request, rise_exc: bool = True):
 def get_image_from_request(request, rise_exc: bool = True):
     file = get_file_from_request(request, rise_exc)
     img = Image.open(io.BytesIO(file.read()))
+    print(f"filename: {file.filename}, mimetype: {file.mimetype}, size: {img.size}")
     return img
 
 
 def allowed_file(filename):
-    return (
-        "." in filename
-        and filename.rsplit(".", 1)[1].lower() in settings.ALLOWED_EXTENSIONS
-    )
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in settings.ALLOWED_EXTENSIONS
 
 
-def prepare_file_to_output(img: Image):
+def to_response(img: Image):
     img_byte_arr = io.BytesIO()
     img.save(img_byte_arr, format="jpeg")
-    return io.BytesIO(img_byte_arr.getvalue())
+    file_bytes = io.BytesIO(img_byte_arr.getvalue())
+    return send_file(file_bytes, attachment_filename="output.jpg", mimetype="image/jpg")
 
 
 # def save_file(file):

@@ -4,11 +4,11 @@ from torch import nn
 from torchvision import models
 from torchvision.transforms import transforms
 
-MODEL_PATH = "/webapp/data/weights/resnet18_classification_v1.1.2.pt"
+MODEL_PATH = "/weights/resnet18_classification_v1.1.2.pt"
 
 
 def load_model(weights_path: str = None):
-    model = models.resnet18(pretrained=True)
+    model = models.resnet18()
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, 2)
 

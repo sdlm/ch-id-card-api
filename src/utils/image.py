@@ -7,9 +7,7 @@ from PIL import Image
 def get_mean_color(arr: np.array) -> Tuple[int, int, int]:
     assert len(arr.shape) == 3, "Only for RGB image mode"
     assert arr.shape[2] == 3, "Three dimensions expected"
-    mean_color = np.mean(
-        np.mean(arr, axis=0, keepdims=True), axis=1, keepdims=True
-    ).squeeze()
+    mean_color = np.mean(np.mean(arr, axis=0, keepdims=True), axis=1, keepdims=True).squeeze()
     return tuple(mean_color.astype(int).tolist())  # type: ignore
 
 
