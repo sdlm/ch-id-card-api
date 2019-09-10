@@ -14,7 +14,7 @@ def load_model(weights_path: str = None):
     model.fc = nn.Linear(num_ftrs, 8)
 
     path = weights_path if weights_path else MODEL_PATH
-    model.load_state_dict(torch.load(path))
+    model.load_state_dict(torch.load(path, map_location="cpu"))
     model.eval()
 
     return model
@@ -24,7 +24,7 @@ def predict_coords(model, tensor):
     coords = model(tensor)
     coords = torch.split(coords, 1, dim=1)
     coords = np.resize(coords, (4, 2))
-    return coords
+    return coords.astype("float32")
 
 
 def get_card_coords(img: Image) -> np.array:

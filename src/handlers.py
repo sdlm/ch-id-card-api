@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from PIL import Image
 
+from .predict.coords import get_card_coords
 from .predict.existence import get_card_existence
 from .utils import http, image
 
@@ -33,9 +34,24 @@ def card_exists():
     return {"card_exists": is_card_exists}
 
 
-@webapp.route("/get_card")
+@webapp.route("/get_card", methods=["POST"])
 def get_card():
-    return {"get_card": "ok"}
+    img = http.get_image_from_request(request)
+
+    square_img = image.get_square_image(img)
+
+    square_img_128 = square_img.resize((128, 128), Image.ANTIALIAS)
+
+    is_card_exists = get_card_existence(square_img_128)
+
+    if not is_card_exists:
+        return {"card_exists": is_card_exists}
+
+    square_img_w, _ = square_img.size
+    coords = get_card_coords(square_img_128) * (square_img_w / 128)
+    card = image.get_card(square_img, coords)
+
+    return http.to_response(card)
 
 
 @webapp.route("/get_text")
