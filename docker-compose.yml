@@ -11,3 +11,9 @@ services:
     command: gunicorn -b 0.0.0.0:4000 webapp.app:app --chdir / --reload
     environment:
       - PYTHONUNBUFFERED=1
+
+  tesseract:
+    image: sdlmer/tesseract-api
+
+  chineseocr:
+    image: zergmk2/chineseocr:pytorch1.0-cpu-py3.6

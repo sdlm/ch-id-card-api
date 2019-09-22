@@ -1,3 +1,7 @@
+import base64
+import io
+
+import requests
 from flask import Blueprint, request
 from PIL import Image
 
@@ -54,6 +58,29 @@ def get_card():
     return http.to_response(card)
 
 
-@webapp.route("/get_text")
+@webapp.route("/get_text", methods=["POST"])
 def get_text():
-    return {"get_text": "ok"}
+    img = http.get_image_from_request(request)
+
+    square_img = image.get_square_image(img)
+
+    square_img_128 = square_img.resize((128, 128), Image.ANTIALIAS)
+
+    is_card_exists = get_card_existence(square_img_128)
+
+    if not is_card_exists:
+        return {"card_exists": is_card_exists}
+
+    square_img_w, _ = square_img.size
+    coords = get_card_coords(square_img_128) * (square_img_w / 128)
+    card = image.get_card(square_img, coords)
+
+    img_byte_arr = io.BytesIO()
+    card.save(img_byte_arr, format="jpeg")
+    img_byte_arr = img_byte_arr.getvalue()
+
+    img_base64_str = base64.b64encode(img_byte_arr).decode("utf-8")
+
+    resp = requests.post("http://chineseocr:8080/ocr", json={"imgString": img_base64_str, "billModel": "身份证"})
+    data = resp.json()
+    return {x["name"]: x["text"] for x in data["res"]}
